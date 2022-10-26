@@ -11,6 +11,20 @@ class MinimumAreaRectangleTest : FreeSpec({
             },
             row(
                 arrayOf(
+                    intArrayOf(1, 2),
+                    intArrayOf(1, 3),
+                    intArrayOf(3, 3),
+                    intArrayOf(4, 4),
+                    intArrayOf(2, 1),
+                    intArrayOf(1, 4),
+                    intArrayOf(2, 2),
+                    intArrayOf(1, 0),
+                    intArrayOf(0, 2),
+                ),
+                0,
+            ),
+            row(
+                arrayOf(
                     intArrayOf(0, 1),
                     intArrayOf(3, 2),
                     intArrayOf(4, 4),

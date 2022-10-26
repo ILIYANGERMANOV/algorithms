@@ -1,4 +1,7 @@
-import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
+
+typealias Point = IntArray
 
 /**
  * Problem:
@@ -6,168 +9,85 @@ import kotlin.math.abs
  */
 class MinimumAreaRectangle {
 
-    data class Point(
-        val x: Int,
-        val y: Int
-    )
-
-    data class Line(
-        val start: Point,
-        val end: Point
-    )
-
-    data class Rect(
-        val bottomLeft: Point,
-        val topRight: Point
-    )
-
-    fun minAreaRect(pointsArr: Array<IntArray>): Int {
-        val points = pointsArr.map {
-            Point(x = it[0], y = it[1])
+    fun minAreaRect(points: Array<Point>): Int {
+        var minArea: Int? = null
+        chooseFourUnique(points) { a, b, c, d ->
+            if (parallel(a, b, c, d) && rectangle(a, b, c, d)) {
+                println("rect: ${a.toList()}, ${b.toList()}, ${c.toList()}, ${d.toList()}")
+                val area = area(a, b, c, d)
+                minArea = minArea?.let { minOf(it, area) } ?: area
+            }
         }
+        return minArea ?: 0
+    }
 
-        println("Case $points -------------")
-        // it[0] = x; it[1] = y;
-        val horizontalLines = points.groupBy { it.y }.filterValues { it.size >= 2 }
-            .mapValues { (y, points) ->
-                val lines = mutableListOf<Line>()
-                for (p1 in points) {
-                    for (p2 in points) {
-                        if (p1 == p2) continue
-                        val lineAdded = lines.any {
-                            it.start.x == p1.x && it.end.x == p2.x ||
-                                    it.start.x == p2.x && it.end.x == p1.x
-                        }
-                        if (lineAdded) continue
-                        val newLine = Line(
-                            start = Point(
-                                x = p1.x,
-                                y = y
-                            ),
-                            end = Point(
-                                x = p2.x,
-                                y = y
-                            )
-                        )
-                        lines.add(newLine)
-                    }
-                }
-                lines
-            }.values.flatten()
-        val verticalLines = points.groupBy { it.x }.filterValues { it.size >= 2 }
-            .mapValues { (x, points) ->
-                val lines = mutableListOf<Line>()
-                for (p1 in points) {
-                    for (p2 in points) {
-                        if (p1 == p2) continue
-                        val lineAdded = lines.any {
-                            it.start.y == p1.y && it.end.y == p2.y ||
-                                    it.start.y == p2.y && it.end.y == p1.y
-                        }
-                        if (lineAdded) continue
-                        val newLine = Line(
-                            start = Point(
-                                x = x,
-                                y = p1.y
-                            ),
-                            end = Point(
-                                x = x,
-                                y = p2.y
-                            )
-                        )
-                        lines.add(newLine)
-                    }
-                }
-                lines
-            }.values.flatten()
-        println("horizontal = $horizontalLines")
-        println("vertical = $verticalLines")
-
-        val rectangles = mutableSetOf<Rect>()
-        for (h1 in horizontalLines) {
-            for (h2 in horizontalLines) {
-                if (h1 == h2) continue
-                for (v1 in verticalLines) {
-                    for (v2 in verticalLines) {
-                        if (v1 == v2) continue
-                        if (
-                            connected(h1, v1) &&
-                            connected(h1, v2) &&
-                            connected(h2, v1) &&
-                            connected(h2, v2)
-                        ) {
-                            val topRight = if (v1.start.x > v2.start.x) {
-                                // v1 is right
-                                Point(
-                                    x = v1.start.x,
-                                    y = maxOf(v1.start.y, v1.end.y)
-                                )
-                            } else {
-                                // v2 is right
-                                Point(
-                                    x = v2.start.x,
-                                    y = maxOf(v2.start.y, v2.end.y)
-                                )
-                            }
-                            val bottomLeft = if (h1.start.y < h2.start.y) {
-                                // h1 is bottom
-                                Point(
-                                    x = minOf(h1.start.x, h1.end.x),
-                                    y = h1.start.y
-                                )
-                            } else {
-                                // h2 is bottom
-                                Point(
-                                    x = minOf(h2.start.x, h2.end.x),
-                                    y = h2.start.y
-                                )
-                            }
-                            if (bottomLeft.x == topRight.x) continue
-                            if (bottomLeft.y == topRight.y) continue
-
-                            // validate that points exists
-                            if (
-                                !points.any { it.x == bottomLeft.x && it.y == topRight.y }
-                            ) continue
-                            if (
-                                !points.any { it.x == topRight.x && it.y == bottomLeft.y }
-                            ) continue
-
-
-                            rectangles.add(
-                                Rect(
-                                    bottomLeft = bottomLeft,
-                                    topRight = topRight
-                                )
-                            )
-                        }
+    private inline fun chooseFourUnique(
+        points: Array<Point>,
+        block: (Point, Point, Point, Point) -> Unit
+    ) {
+        for (a in points) {
+            for (b in points) {
+                if (a sameAs b) continue
+                for (c in points) {
+                    if (a sameAs c || b sameAs c) continue
+                    for (d in points) {
+                        if (a sameAs d || b sameAs d || c sameAs d) continue
+                        block(a, b, c, d)
                     }
                 }
             }
         }
-
-        println("rectangles $rectangles")
-        return rectangles.myMinOf { it.area() } ?: 0
     }
 
-    private fun connected(hor: Line, ver: Line): Boolean = when {
-        hor.start == ver.start ||
-                hor.start == ver.end ||
-                hor.end == ver.start ||
-                hor.end == ver.end -> true
-        else -> false
+    private infix fun Point.sameAs(other: Point): Boolean =
+        x() == other.x() && y() == other.y()
+
+    private fun area(
+        a: Point, b: Point,
+        c: Point, d: Point
+    ): Int {
+        val minX = minOf(a.x(), b.x(), c.x(), d.x())
+        val maxX = maxOf(a.x(), b.x(), c.x(), d.x())
+        val minY = minOf(a.y(), b.y(), c.y(), d.y())
+        val maxY = maxOf(a.y(), b.y(), c.y(), d.y())
+        return (maxX - minX) * (maxY - minY)
     }
 
-    private fun Rect.area(): Int =
-        abs(bottomLeft.x - topRight.x) * abs(bottomLeft.y - topRight.y)
-
-    private fun Set<Rect>.myMinOf(selector: (Rect) -> Int): Int? {
-        if (this.isEmpty()) return null
-        var min = selector(first())
-        val n = this.size
-        for (i in 1 until n) {
-            min = minOf(min, selector(this.elementAt(i)))
-        }
-        return min
+    private fun parallel(
+        a: Point, b: Point,
+        c: Point, d: Point,
+    ): Boolean {
+        val points = arrayOf(a, b, c, d)
+        if (points.map { it.x() }.toSet().size > 2) return false
+        if (points.map { it.y() }.toSet().size > 2) return false
+        return true
     }
+
+    /**
+     * Conditions for rectangle:
+     * - distance(a,b) == distance(c,d)
+     * - distance(a,c) == distance(b,d)
+     * - distance(a,d) == distance(b,c)
+     *
+     * @return whether four points form an rectangle, note: it might be rotated
+     */
+    private fun rectangle(
+        a: Point, b: Point,
+        c: Point, d: Point
+    ): Boolean = distance(a, b) == distance(c, d) &&
+            distance(a, c) == distance(b, d) &&
+            distance(a, d) == distance(b, c)
+
+    /**
+     * Formula:
+     * d=√((x2 – x1)² + (y2 – y1)²)
+     */
+    private fun distance(p1: Point, p2: Point): Double = sqrt(
+        (p1.x().toDouble() - p2.x()).pow(2.0) +
+                (p1.y().toDouble() - p2.y()).pow(2.0)
+    )
+
+    private fun IntArray.x() = this[0]
+
+    private fun IntArray.y() = this[1]
 }
