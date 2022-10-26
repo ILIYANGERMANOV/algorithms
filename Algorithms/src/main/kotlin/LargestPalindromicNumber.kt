@@ -42,8 +42,16 @@ class LargestPalindromicNumber {
         else str + str.reversed()
     }
 
-
     private fun mirror(available: List<Pair<Int, Int>>): Pair<String, String?> {
+        fun biggestLeftover(currentDigit: Int, secondLeft: String?): Int {
+            val secondLeftSafe = secondLeft?.toInt() ?: 0
+            val next = available.getOrNull(1)?.first
+                ?: return maxOf(currentDigit, secondLeftSafe)
+            return if (next > currentDigit) {
+                maxOf(next, secondLeftSafe)
+            } else maxOf(currentDigit, secondLeftSafe)
+        }
+
         if (available.isEmpty()) return "" to null
         val (digit, count) = available.first()
         return if (count.isEven()) {
@@ -53,11 +61,12 @@ class LargestPalindromicNumber {
         } else {
             if (count > 1) {
                 // not even; count >= 3
-                val leftOver = when (digit) {
-                    0 -> available.getOrNull(1)?.first?.toString() ?: "0"
-                    else -> digit.toString()
-                }
-                digit.toString().repeat((count - 1) / 2) to leftOver
+                val first = digit.toString().repeat((count - 1) / 2)
+                val (secondStr, secondLeft) = mirror(available.drop(1))
+                first + secondStr to biggestLeftover(
+                    currentDigit = digit,
+                    secondLeft = secondLeft
+                ).toString()
             } else {
                 // count = 1
                 "" to digit.toString()
