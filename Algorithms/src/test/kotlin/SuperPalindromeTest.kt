@@ -11,8 +11,11 @@ class SuperPalindromeTest : FreeSpec({
             },
             row("4", "14", 2),
             row("1", "25", 3),
+            row("1", "100000", 10),
             row("4", "1000", 4),
             row("1", "2", 1),
+            row("375259531", "1265368034085", 18),
+            row("1", "1000000000000000000", 70),
         ) { (left, right, count) ->
             val sut = SuperPalindrome()
 
