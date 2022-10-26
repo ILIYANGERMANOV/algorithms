@@ -4,6 +4,10 @@ import kotlin.math.sqrt
 typealias Point = IntArray
 
 /**
+ * # Minimum Area Rectangle
+ *
+ * _Note: Time Limit Exceeded (not optimal)_
+ *
  * Problem:
  * https://leetcode.com/problems/minimum-area-rectangle/
  */
