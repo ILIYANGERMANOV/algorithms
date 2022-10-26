@@ -9,6 +9,8 @@ class SuperPalindromeTest : FreeSpec({
             nameFn = { (left, right, count) ->
                 "in [$left, $right] are $count"
             },
+            row("4", "14", 2),
+            row("1", "25", 3),
             row("4", "1000", 4),
             row("1", "2", 1),
         ) { (left, right, count) ->

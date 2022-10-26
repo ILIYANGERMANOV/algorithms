@@ -6,22 +6,27 @@ class SuperPalindrome {
         val r = right.toLong()
 
         var count = 0
-        var n = l
+        var n = sqrt(l.toDouble()).toLong()
+
         while (n < r) {
-            if (superPalindrome(n)) {
-                println(n)
-                count++
+            if (!palindrome(n)) {
+                n++
+                continue
+            }
+            val squared = n * n
+            if (squared <= r) {
+                if (squared >= l && palindrome(squared)) {
+                    println(squared)
+                    count++
+                }
+            } else {
+                println("break for $n")
+                break
             }
             n++
         }
-        return count
-    }
 
-    private fun superPalindrome(n: Long): Boolean {
-        if (!palindrome(n)) return false
-        val square = sqrt(n.toDouble()).toLong()
-        if (square * square != n) return false
-        return palindrome(square)
+        return count
     }
 
     private fun palindrome(n: Long): Boolean =
