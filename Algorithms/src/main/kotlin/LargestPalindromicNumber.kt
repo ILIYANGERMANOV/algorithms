@@ -21,34 +21,47 @@ class LargestPalindromicNumber {
              * a negative number if the first argument is less than the second,
              * or a positive number if the first argument is greater than the second.
              */
-            val oneRank = (if (count1.isEven()) 100 else 0) + digit1
-            val twoRank = (if (count2.isEven()) 100 else 0) + digit2
+            val oneRank = (if (count1 > 1) 100 else 0) + digit1
+            val twoRank = (if (count2 > 1) 100 else 0) + digit2
             twoRank - oneRank// sort descending
         }
 
         val mirror = mirror(available)
-        val palindrome = if (mirror.last().digitToInt().isEven()) {
-            mirror + mirror.reversed()
-        } else {
-            val evenMirror = mirror.dropLast(1)
-            evenMirror + mirror.last() + evenMirror.reversed()
-        }
+        val palindrome = palindrome(mirror)
 
         // Filter leading 0's
         return if (palindrome.first() == '0') {
-            palindrome.replace("0", "")
+            palindrome.replace("0", "").takeIf { it.isNotEmpty() } ?: "0"
         } else palindrome
     }
 
-    private fun mirror(available: List<Pair<Int, Int>>): String {
-        if (available.isEmpty()) return ""
+    private fun palindrome(mirror: Pair<String, String?>): String {
+        val (str, left) = mirror
+        return if (left != null)
+            str + left + str.reversed()
+        else str + str.reversed()
+    }
+
+
+    private fun mirror(available: List<Pair<Int, Int>>): Pair<String, String?> {
+        if (available.isEmpty()) return "" to null
         val (digit, count) = available.first()
         return if (count.isEven()) {
-            // even, recurse
-            digit.toString().repeat(count / 2) + mirror(available.drop(1))
+            val first = digit.toString().repeat(count / 2)
+            val (secondStr, secondLeft) = mirror(available.drop(1))
+            first + secondStr to secondLeft
         } else {
-            // not even, just add once
-            digit.toString()
+            if (count > 1) {
+                // not even; count >= 3
+                val leftOver = when (digit) {
+                    0 -> available.getOrNull(1)?.first?.toString() ?: "0"
+                    else -> digit.toString()
+                }
+                digit.toString().repeat((count - 1) / 2) to leftOver
+            } else {
+                // count = 1
+                "" to digit.toString()
+            }
         }
     }
 
