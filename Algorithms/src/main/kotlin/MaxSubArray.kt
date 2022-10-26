@@ -8,7 +8,7 @@ class MaxSubArray {
         if (size == 1) return nums[0]
 
         var sum = nums.first()
-        val possibleMaxes = ArrayList<Int>(size)
+        var localMax = sum
 
         for (i in 1 until size) {
             val n = nums[i]
@@ -25,7 +25,7 @@ class MaxSubArray {
                         // n(-) + sum(+) => we can't know if we should reset the sum,
                         // because we can't predict the next numbers coming
                         // => 1) remember local max; 2) continue the sum;
-                        possibleMaxes.add(sum)
+                        localMax = maxOf(localMax, sum)
                         sum += n
                     } else {
                         // sum(-)
@@ -35,7 +35,7 @@ class MaxSubArray {
                         } else {
                             // n(-) is worse than sum(-) but we can't predict the future
                             // => 1) remember local max; 2) continue the sum;
-                            possibleMaxes.add(sum)
+                            localMax = maxOf(localMax, sum)
                             sum += n
                         }
                     }
@@ -43,20 +43,6 @@ class MaxSubArray {
             }
         }
 
-        return if (possibleMaxes.isEmpty())
-            sum else maxOf(max(possibleMaxes), sum)
-    }
-
-    /**
-     * LeetCode doesn't know the "List.maxOf{}" built-in function
-     * so we have to create our own one.
-     */
-    private fun max(arr: ArrayList<Int>): Int {
-        var max = arr.first()
-        val size = arr.size
-        for (i in 1 until size) {
-            max = maxOf(arr[i], max)
-        }
-        return max
+        return maxOf(localMax, sum)
     }
 }
