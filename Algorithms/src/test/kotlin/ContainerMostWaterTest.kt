@@ -9,8 +9,9 @@ class ContainerMostWaterTest : FreeSpec({
             nameFn = { (height, expected) ->
                 "${height.toList()} is $expected"
             },
+            row(intArrayOf(1, 2, 4, 3), 4),
             row(intArrayOf(1, 8, 6, 2, 5, 4, 8, 3, 7), 49),
-            row(intArrayOf(1, 1), 1),
+            row(intArrayOf(1, 1), 1)
         ) { (height, expected) ->
             val sut = ContainerMostWater()
 

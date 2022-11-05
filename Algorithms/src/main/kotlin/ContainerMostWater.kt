@@ -1,23 +1,24 @@
 class ContainerMostWater {
-    fun maxArea(height: IntArray): Int {
-        var lIndex = 0
-        val initialR = height.size - 1
-        var rIndex = initialR
-        var res = 0
+    fun maxArea(heightArr: IntArray): Int {
+        var left = 0
+        var right = heightArr.lastIndex
+        var width: Int
+        var maxWaterArea = 0
 
-        while (lIndex != rIndex) {
-            while (lIndex != rIndex) {
-                val lHeight = height[lIndex]
-                val rHeight = height[rIndex]
-                val width = rIndex - lIndex
-                val area = width * minOf(lHeight, rHeight)
-                res = maxOf(res, area)
-                rIndex--
+        while (left < right) {
+            width = right - left
+            maxWaterArea = maxOf(
+                maxWaterArea,
+                minOf(heightArr[left], heightArr[right]) * width
+            )
+
+            if (heightArr[left] <= heightArr[right]) {
+                left++
+            } else {
+                right--
             }
-            rIndex = initialR
-            lIndex++
         }
 
-        return res
+        return maxWaterArea
     }
 }
