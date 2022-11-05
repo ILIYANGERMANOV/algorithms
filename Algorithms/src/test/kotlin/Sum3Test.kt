@@ -1,7 +1,7 @@
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.row
 import io.kotest.datatest.withData
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 
 class Sum3Test : FreeSpec({
     "sum 3" - {
@@ -20,13 +20,16 @@ class Sum3Test : FreeSpec({
             ),
             row(
                 intArrayOf(0, 0, 0), listOf(listOf(0, 0, 0))
+            ),
+            row(
+                intArrayOf(0, 0, 0, 0), listOf(listOf(0, 0, 0))
             )
         ) { (arr, answer) ->
             val sut = Sum3()
 
             val res = sut.threeSum(arr)
 
-            res shouldBe answer
+            res shouldContainExactlyInAnyOrder answer
         }
     }
 })
