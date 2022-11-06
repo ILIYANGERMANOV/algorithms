@@ -2,6 +2,8 @@
  * # 567. Permutation in String
  * Problem:
  * https://leetcode.com/problems/permutation-in-string/
+ *
+ * WARNING: This solution is not optimal!
  */
 class PermutationInString {
     fun checkInclusion(target: String, source: String): Boolean {
