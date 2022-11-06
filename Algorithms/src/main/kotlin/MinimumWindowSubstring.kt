@@ -1,82 +1,76 @@
 class MinimumWindowSubstring {
     fun minWindow(s: String, t: String): String {
-        val tLen = t.length
-        val sLen = s.length
-        if (tLen > sLen) return ""
+        if (t.isEmpty() || s.isEmpty() || t.length > s.length) return ""
 
-        // load "t" letters
-        val lettersMap = mutableMapOf<Char, Int>()
-        reloadLetters(t = t, lettersMap = lettersMap)
+        val tLetters = mutableMapOf<Char, Int>()
+        for (c in t) {
+            tLetters.increment(c)
+        }
 
-        return solve(
-            s = s,
-            t = t,
-            sLen = sLen,
-            start = 0,
-            min = "",
-            lettersMap = lettersMap,
-        )
-    }
-
-    private fun solve(
-        s: String,
-        t: String,
-        sLen: Int,
-        start: Int,
-        min: String,
-        lettersMap: MutableMap<Char, Int>,
-    ): String {
-        var current = ""
-
-        println("Start loop: start = $start #${s[start]} in \"$s\"")
-        for (i in start until sLen) {
-            val c = s[i]
-            lettersMap.decrement(c)
-            current += c
-            if (lettersMap.matches()) {
-                val newMin = if (
-                    current.length < min.length || min.isEmpty()
-                ) current else min
-
-                println("match!!! current = \"$current\", min = \"$min\"")
-                println("lettersMap = ${lettersMap.map { (key, value) -> "$key=$value" }}")
-                // reset and continue new
-                reloadLetters(t = t, lettersMap = lettersMap)
-                return solve(
-                    s = s,
-                    t = t,
-                    sLen = sLen,
-                    start = i,
-                    min = newMin,
-                    lettersMap = lettersMap
-                )
+        val filteredS = mutableListOf<Pair<Int, Char>>()
+        for ((i, c) in s.withIndex()) {
+            if (tLetters.contains(c)) {
+                filteredS.add(i to c)
             }
         }
+        println("filteredS = ${filteredS.toList()}")
+        println(s)
 
-        return min
-    }
+        var minLen = -1
+        var mStart = -1
+        var mEnd = -1
 
-    private fun MutableMap<Char, Int>.matches(): Boolean {
-        this.values.forEach {
-            if (it > 0) return false
+        val required = tLetters.size
+        var l = 0
+        var r = 0
+        var formed = 0
+        val windowCount = mutableMapOf<Char, Int>()
+        while (r < filteredS.size) {
+            var c = filteredS[r].second
+            windowCount.increment(c)
+
+            if (windowCount.getSafe(c) == tLetters.getSafe(c)) {
+                formed++
+            }
+
+            while (l <= r && formed == required) {
+                c = filteredS[l].second
+
+                val start = filteredS[l].first
+                val end = filteredS[r].first
+                println("Candidate: \"${s.substring(start, end + 1)}\" (${s.substring(start, end + 1).length})")
+                if (minLen == -1 || end - start + 1 < minLen) {
+                    minLen = end - start + 1
+                    mStart = start
+                    mEnd = end
+                    println("Saving: \"${s.substring(start, end + 1)}\"")
+                }
+
+                windowCount.decrement(c)
+                if (windowCount.getSafe(c) < tLetters.getSafe(c)) {
+                    formed--
+                }
+                l++
+            }
+            r++
         }
-        return true
+
+        println()
+        println("-------------------")
+
+        return if (minLen == -1) "" else s.substring(mStart, mEnd + 1)
     }
 
     private fun MutableMap<Char, Int>.increment(c: Char) {
-        val count = this[c] ?: 0
+        val count = this.getOrDefault(c, 0)
         this[c] = count + 1
     }
 
     private fun MutableMap<Char, Int>.decrement(c: Char) {
-        val count = this[c] ?: 0
+        val count = this.getOrDefault(c, 0)
         this[c] = count - 1
     }
 
-    private fun reloadLetters(t: String, lettersMap: MutableMap<Char, Int>) {
-        lettersMap.clear()
-        for (c in t) {
-            lettersMap.increment(c)
-        }
-    }
+    private fun MutableMap<Char, Int>.getSafe(c: Char): Int =
+        getOrDefault(c, 0)
 }
