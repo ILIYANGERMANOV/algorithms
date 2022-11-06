@@ -7,43 +7,36 @@ class LongestSubStrTwoDistinct {
 
         var maxLen = 2
 
-        val charCountMap = mutableMapOf<Char, Int>()
+        val lastSeenIndex = mutableMapOf<Char, Int>()
 
         var l = 0
         var r = 0
 
         // expand
         while (r < n) {
-            var c = s[r]
-            charCountMap.increment(c)
+            val c = s[r]
+            lastSeenIndex[c] = r
 
-            if (charCountMap.size <= 2) {
-                maxLen = maxOf(maxLen, r - l + 1)
-                println("max = $maxLen (l = $l, r = $r)")
+            if (lastSeenIndex.size == 3) {
+                // we've used 3 letters! drop the most old
+                l = lastSeenIndex.clearOldestIndex() + 1
             }
-            while (charCountMap.size > 2) {
-                // record max
-                c = s[l]
-                charCountMap.decrementOrRemove(c)
-                l++
-            }
+            maxLen = maxOf(maxLen, r - l + 1)
             r++
         }
 
         return maxLen
     }
 
-    private fun MutableMap<Char, Int>.increment(c: Char) {
-        val count = this.getOrDefault(c, 0)
-        this[c] = count + 1
+    private fun MutableMap<Char, Int>.clearOldestIndex(): Int {
+        var min: Pair<Char, Int>? = null
+        this.forEach { (char, index) ->
+            if (min == null || index < min!!.second) {
+                min = char to index
+            }
+        }
+        this.remove(min!!.first)
+        return min!!.second
     }
 
-    private fun MutableMap<Char, Int>.decrementOrRemove(c: Char) {
-        val count = this.getOrDefault(c, 0) - 1
-        if (count <= 0) {
-            this.remove(c)
-        } else {
-            this[c] = count
-        }
-    }
 }
