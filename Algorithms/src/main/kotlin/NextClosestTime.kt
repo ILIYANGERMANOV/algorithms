@@ -8,10 +8,9 @@ class NextClosestTime {
         val sortedDigits = digits.sorted()
 
         val hour = String(charArrayOf(time[0], time[1]))
-        val hourInt = hour.toInt()
         val minute = String(charArrayOf(time[3], time[4]))
         val minuteInt = minute.toInt()
-        val hasZero: Boolean = sortedDigits.any { it == 0 }
+        val hasZero: Boolean = sortedDigits.first() == 0
 
         return tryNextMinute(
             sortedDigits = sortedDigits,
@@ -22,7 +21,6 @@ class NextClosestTime {
         ) ?: tryNextHorWithMinimizedMin(
             sortedDigits = sortedDigits,
             hour = hour,
-            hourInt = hourInt,
             hasZero = hasZero
         ) ?: minimizeTime(sortedDigits)
     }
@@ -56,25 +54,26 @@ class NextClosestTime {
     private fun tryNextHorWithMinimizedMin(
         sortedDigits: List<Int>,
         hour: String,
-        hourInt: Int,
         hasZero: Boolean
     ): String? {
-        if (hour == "23") return null
+        fun minimizedMin(): String = sortedDigits.first().run {
+            if (hasZero) "0$this" else "$this$this"
+        }
 
-        val first = sortedDigits.first()
-        val minimizedMin = if (hasZero) "0$first" else "$first$first"
+        if (hour == "23") return null
+        val hourInt = hour.toInt()
 
         for (i in sortedDigits.indices) {
             val digit1 = sortedDigits[i]
             if (hasZero) {
                 // try single digit
-                if (digit1 > hourInt) return "0$digit1:$minimizedMin"
+                if (digit1 > hourInt) return "0$digit1:${minimizedMin()}"
             }
 
             for (j in sortedDigits.indices) {
                 val digit2 = sortedDigits[j]
                 val newHour = validHour(digit1, digit2)
-                if (newHour != null && newHour > hourInt) return "${format(newHour)}:$minimizedMin"
+                if (newHour != null && newHour > hourInt) return "${format(newHour)}:${minimizedMin()}"
             }
         }
 
@@ -105,5 +104,4 @@ class NextClosestTime {
      * LeetCode compatibility
      */
     private fun Char.digitToInt(): Int = this.toInt() - '0'.toInt()
-
 }
