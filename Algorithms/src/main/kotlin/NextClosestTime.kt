@@ -1,3 +1,16 @@
+fun main() {
+    val sut = NextClosestTime()
+
+    for (h in 0..23) {
+        val hour = if (h < 10) "0$h" else h.toString()
+        for (m in 0..59) {
+            val minute = if (m < 10) "0$m" else m.toString()
+            val time = "$hour:$minute"
+            println("\"$time\" -> \"${sut.nextClosestTime(time)}\"")
+        }
+    }
+}
+
 class NextClosestTime {
     fun nextClosestTime(time: String): String {
         val digits = mutableSetOf<Int>()
