@@ -3,15 +3,19 @@ fun counts(teamA: Array<Int>, teamB: Array<Int>): Array<Int> {
     val aSize = teamA.size
     val bSize = teamB.size
 
+    val cache = mutableMapOf<Int, Int>()
+
     for (i in 0 until bSize) {
         val goalsB = teamB[i]
-        teamB[i] = search(
+        val answer = cache[goalsB] ?: search(
             teamA = teamA,
             teamBGoals = goalsB,
             latestIndex = null,
             left = 0,
             right = aSize - 1
         )?.plus(1) ?: 0
+        cache[goalsB] = answer
+        teamB[i] = answer
     }
 
     return teamB
