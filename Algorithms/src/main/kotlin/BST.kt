@@ -20,10 +20,92 @@ sealed interface BST<out A : Comparable<*>> {
     ) : BST<A>
 }
 
+fun <A : Comparable<A>> BST<A>.value(): A? = (this as? BST.Node)?.value
+
 fun <A : Comparable<A>> flatten(bst: BST<A>): List<A> = when (bst) {
     BST.None -> emptyList()
     is BST.Node -> flatten(bst.left) + listOf(bst.value) + flatten(bst.right)
 }
+
+tailrec fun <A : Comparable<A>> search(x: A, bst: BST<A>): BST.Node<A>? = when (bst) {
+    BST.None -> null
+    is BST.Node -> when {
+        x == bst.value -> bst
+        x > bst.value -> search(x, bst.right)
+        // x < bst.value
+        else -> search(x, bst.left)
+    }
+}
+
+fun <A : Comparable<A>> remove(x: A, bst: BST<A>): BST<A> = balanceStep(
+    when (bst) {
+        BST.None -> bst
+        is BST.Node -> {
+            when {
+                x == bst.value -> {
+                    removeNode(bst)
+                }
+                x > bst.value -> {
+                    bst.copy(
+                        right = remove(x, bst.right)
+                    )
+                }
+                // x < bst.value
+                else -> {
+                    bst.copy(
+                        left = remove(x, bst.left)
+                    )
+                }
+            }
+        }
+    }
+)
+
+fun <A : Comparable<A>> removeNode(bst: BST<A>): BST<A> {
+    return when (bst) {
+        BST.None -> bst
+        is BST.Node -> {
+            when {
+                bst.left is BST.Node && bst.right is BST.None -> {
+                    // only 1 child, LEFT
+                    bst.left
+                }
+                bst.left is BST.None && bst.right is BST.Node -> {
+                    // only 1 child, RIGHT
+                    bst.right
+                }
+                bst.left is BST.Node && bst.right is BST.Node -> {
+                    // 2 children
+                    val leftMax = max(bst.left)!!
+                    node(
+                        left = remove(leftMax, bst.left),
+                        value = leftMax,
+                        right = bst.right
+                    )
+                }
+                else -> {
+                    // leaf node, no children => just remove it
+                    BST.None
+                }
+            }
+        }
+    }
+}
+
+tailrec fun <A : Comparable<A>> min(bst: BST<A>): A? =
+    when (bst) {
+        BST.None -> null
+        is BST.Node ->
+            if (bst.left is BST.None) bst.value else min(bst.left)
+    }
+
+tailrec fun <A : Comparable<A>> max(bst: BST<A>): A? =
+    when (bst) {
+        BST.None -> null
+        is BST.Node ->
+            if (bst.right is BST.None) bst.value else max(bst.right)
+    }
+
 
 fun <A : Comparable<A>> insert(x: A, bst: BST<A>): BST<A> {
     return when (bst) {
@@ -36,10 +118,10 @@ fun <A : Comparable<A>> insert(x: A, bst: BST<A>): BST<A> {
                         when (bst.right) {
                             BST.None -> bst.copy(
                                 right = node(value = x)
-                            )
+                            ).updateHeight()
                             is BST.Node -> bst.copy(
                                 right = insert(x, bst.right)
-                            )
+                            ).updateHeight()
                         }
                     }
                     // x < bst.value
@@ -48,10 +130,10 @@ fun <A : Comparable<A>> insert(x: A, bst: BST<A>): BST<A> {
                         when (bst.left) {
                             BST.None -> bst.copy(
                                 left = node(value = x)
-                            )
+                            ).updateHeight()
                             is BST.Node -> bst.copy(
                                 left = insert(x, bst.left)
-                            )
+                            ).updateHeight()
                         }
                     }
                 }
@@ -115,8 +197,9 @@ fun <A : Comparable<A>> balanced(bst: BST<A>): Boolean = when (bst) {
 }
 
 fun <A : Comparable<A>> height(bst: BST<A>): Int = when (bst) {
+    // TODO: Use the cached height when it's computed correctly
     BST.None -> 0
-    is BST.Node -> bst.height
+    is BST.Node -> 1 + maxOf(height(bst.left), height(bst.right))
 }
 
 /**
@@ -154,12 +237,10 @@ fun <A : Comparable<A>> rotateRight(bst: BST<A>): BST<A> {
             val left = bst.left as BST.Node
 
             left.copy(
-                height = left.height + 1, // goes up
                 right = bst.copy(
-                    height = bst.height - 1, // goes down
                     left = left.right
-                )
-            )
+                ).updateHeight()
+            ).updateHeight()
         }
         BST.None -> bst
     }
@@ -191,13 +272,17 @@ fun <A : Comparable<A>> rotateLeft(bst: BST<A>): BST<A> {
             val right = bst.right as BST.Node
 
             right.copy(
-                height = right.height + 1, // goes up
                 left = bst.copy(
-                    height = bst.height - 1, // goes down
                     right = right.left
-                )
-            )
+                ).updateHeight()
+            ).updateHeight()
         }
         BST.None -> bst
     }
+}
+
+private fun <A : Comparable<A>> BST.Node<A>.updateHeight(): BST.Node<A> = run {
+    copy(
+        height = 1 + maxOf(height(left), height(right))
+    )
 }
