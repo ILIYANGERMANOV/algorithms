@@ -1,16 +1,26 @@
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.data.row
+import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 
 class WorkspaceTest : FreeSpec({
-    "n = 6, denoms = [1,5]" {
-        numberOfWaysToMakeChange(target = 6, denoms = listOf(1, 5)) shouldBe 2
-    }
+    "number of ways to make change" - {
+        withData(
+            nameFn = { (n, denoms, ways) ->
+                "n = $n, denoms = $denoms => $ways ways"
+            },
+            row(1, listOf(1), 1),
+            row(2, listOf(1), 1),
+            row(2, listOf(1, 2), 2),
+            row(3, listOf(1), 1),
+            row(3, listOf(1, 2), 2),
+            row(4, listOf(1, 2), 3),
+            row(7, listOf(1, 5, 10), 2),
+            row(6, listOf(1, 5), 2),
+            row(4, listOf(1, 5, 10, 25), 1),
+        ) { (n, denoms, ways) ->
+            numberOfWaysToMakeChange(n = n, denoms = denoms) shouldBe ways
 
-    "n = 10, denoms = [1,2,6]" {
-        numberOfWaysToMakeChange(target = 10, denoms = listOf(1, 2, 6)) shouldBe 6
-    }
-
-    "n = 4, denoms = [1, 5, 10, 25]" {
-        numberOfWaysToMakeChange(target = 4, listOf(1, 5, 10, 25)) shouldBe 1
+        }
     }
 })
